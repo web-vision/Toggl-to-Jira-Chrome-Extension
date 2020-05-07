@@ -156,6 +156,7 @@ function submitEntries() {
             $.post(config.url + '/rest/api/latest/issue/' + log.issue + '/worklog', body,
                 function success(response) {
                     console.log('success', response);
+                    log.submit = false;
                     $('#result-' + log.id).text('OK').addClass('success').removeClass('info');
                     $('#input-' + log.id).removeAttr('checked').attr('disabled', 'disabled');
                     $("#comment-" + log.id).attr('disabled', 'disabled');
