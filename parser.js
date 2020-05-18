@@ -207,7 +207,7 @@ function fetchEntries() {
         entries.forEach(function (entry) {
             entry.description = entry.description || 'no-description';
             var issue = entry.description.split(' ')[0];
-            var togglTime = roundUp(entry.duration, config.roundMinutes);
+            var togglTime = roundUpTogglDuration(entry.duration, config.roundMinutes);
 
             var dateString = toJiraWhateverDateTime(entry.start);
             var dateKey = createDateKey(entry.start);
@@ -245,29 +245,28 @@ function fetchEntries() {
     });
 }
 
-/**
+/*
 * Round duration up to next `minutes`.
 * No rounding will be applied if minutes is zero.
 * 
 * Example: round to next quater:
-*  roundUp(22, 15) = 30 // rounded to the next quarter
-*  roundUp(35, 60) = 60 // round to full hour
-*  roundUp(11, 0) = 11 // ignored rounding
+* roundUpTogglDuration(22, 15) = 30 // rounded to the next quarter
+* roundUpTogglDuration(35, 60) = 60 // round to full hour
+* roundUpTogglDuration(11, 0) = 11  // ignored rounding
 */
-function roundUp(initialDuration, rounding_minutes) {
-    var minutesDuration = initialDuration / 60
-    if (minutesDuration == 0) {
-        return initialDuration;
-    } else {
-        // make sure minium `minutes` are tracked
-        var roundedDuration = (Math.floor(minutesDuration / rounding_minutes) + 1) * rounding_minutes;
-        return roundedDuration * 60;
+function roundUpTogglDuration(initialDurationSeconds, roundingMinutes) {
+    var minutesDuration = initialDurationSeconds / 60 // initialDuration is in seconds
+    if (minutesDuration == 0 || roundingMinutes == 0) { // no rounding required
+        return initialDurationSeconds;
+    } else { // make sure minium `minutes` are tracked
+        var roundedDuration = (Math.floor(minutesDuration / roundingMinutes) + 1) * roundingMinutes;
+        return roundedDuration * 60; // convert back to seconds
     }
 }
 
 function toJiraWhateverDateTime(date) {
     // TOGGL:           at: "2016-03-14T11:02:55+00:00"
-    // JIRA:    "started": "2012-02-15T17:34:37.937-0600"
+    // JIRA:     "started": "2012-02-15T17:34:37.937-0600"
 
     // toggl time should look like jira time (otherwise 500 Server Error is raised)
 
