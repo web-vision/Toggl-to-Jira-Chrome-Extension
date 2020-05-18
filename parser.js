@@ -90,6 +90,7 @@ $(document).ready(function () {
 
     chrome.storage.sync.get({
         url: 'https://jira.atlassian.net',
+        togglApiToken: '',
         comment: 'Updated via toggl-to-jira https://chrome.google.com/webstore/detail/toggl-to-jira/anbbcnldaagfjlhbfddpjlndmjcgkdpf',
         mergeEntriesBy: 'no-merge',
         jumpToToday: false,
@@ -98,10 +99,11 @@ $(document).ready(function () {
         config = items;
         console.log('Fetching toggl entries for today.', 'Jira url: ', config.url, config);
 
+        // Configure AJAX for Jira requests that we are intercepting
         $.ajaxSetup({
             contentType: 'application/json',
             headers: {
-                'forgeme': 'true',
+                'forgeJira': 'true',
                 'X-Atlassian-Token': 'nocheck',
                 'Access-Control-Allow-Origin': '*'
             },
@@ -192,7 +194,13 @@ function fetchEntries() {
 
     var dateQuery = '?start_date=' + startDate + '&end_date=' + endDate;
 
-    $.get('https://www.toggl.com/api/v8/time_entries' + dateQuery, function (entries) {
+    // Toggl API call with token authorisation header
+    $.get({
+        url: 'https://www.toggl.com/api/v8/time_entries' + dateQuery,
+        headers: {
+            "Authorization": "Basic " + btoa(config.togglApiToken + ':api_token')
+        }
+    }, function (entries) {
         logs = [];
         entries.reverse();
 
