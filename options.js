@@ -1,17 +1,19 @@
 // Saves options to chrome.storage
 function saveOptions() {
+    // Required config
     var url = document.getElementById('jira-url').value;
+    var togglApiToken = document.getElementById('toggl-api-token').value;
+    // Optional settings
     var comment = document.getElementById('log-comment').value;
     var mergeEntriesBy = document.getElementById('merge-entries-by').value;
-    var togglApiToken = document.getElementById('toggl-api-token').value;
     var jumpToToday = document.getElementById('jump-to-today').checked;
     var roundMinutes = document.getElementById('round_minutes').value;
     chrome.storage.sync.set({
         url: url,
+        togglApiToken: togglApiToken,
         comment: comment,
         mergeEntriesBy: mergeEntriesBy,
         jumpToToday: jumpToToday,
-        togglApiToken: togglApiToken,
         roundMinutes: roundMinutes
     }, function () {
         // Update status to let user know options were saved.
@@ -36,9 +38,9 @@ function restoreOptions() {
         roundMinutes: 0,
     }, function (items) {
         document.getElementById('jira-url').value = items.url;
+        document.getElementById('toggl-api-token').value = items.togglApiToken;
         document.getElementById('log-comment').value = items.comment;
         document.getElementById('merge-entries-by').value = items.mergeEntriesBy;
-        document.getElementById('toggl-api-token').value = items.togglApiToken;
         document.getElementById('jump-to-today').checked = items.jumpToToday;
         document.getElementById('round_minutes').value = items.roundMinutes;
     });

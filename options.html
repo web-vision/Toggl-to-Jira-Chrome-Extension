@@ -8,8 +8,20 @@
 
     <body>
         <i style="float: right;"><a href="https://www.patreon.com/fryyyy?ty=h" target="_blank">support me</a></i>
-        <label>Jira Server url</label> <i>( e.g. <b>https://jira.atlassian.net</b> no trailing / slash )</i>
+        
+        <label><b>Configuration</b></label>
+        <br />
+        <br />
+        <label>Jira Server URL</label> <i>( e.g. <b>https://jira.atlassian.net</b> no trailing / slash )</i>
         <input id="jira-url" style="width: 100%;" />
+        <br />
+        <br />
+        <label>Toggl User API Token</label> <i>( Find yours at <b><a href="https://toggl.com/app/profile" target="_blank">https://toggl.com/app/profile</a></b> )</i>
+        <input id="toggl-api-token" style="width: 100%;" />
+        <br />
+        <br />
+        <hr>
+        <label><b>Options</b></label>
         <br />
         <br />
         <label>Log Work comment sent with every log</label>
@@ -28,15 +40,11 @@
         </select>
         <br />
         <br />
-        <label>Toggl API token</label> <i>(Use it if you are having trouble to get the log entries from Toggl)</i>
-        <br />
-        <input id="toggl-api-token" style="width: 300px;" />
-        <br />
-        <br />
         <input type="checkbox" id="jump-to-today" />
         <label>Always jump to today instead of remembering last logged date</label>
         <br />
         <br />
+        <hr>
         <div id="status"></div>
         <button id="save">Save</button>
         <script src="options.js"> </script>
