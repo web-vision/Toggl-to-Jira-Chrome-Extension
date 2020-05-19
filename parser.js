@@ -1,5 +1,6 @@
 var logs = [];
 var config = {};
+var myIdentity = {};
 
 $(document).ready(function () {
 
@@ -39,8 +40,9 @@ $(document).ready(function () {
         $('#end-picker').on('change', fetchEntries);
         $('#submit').on('click', submitEntries);
 
-        // Try to connect to both services first
+        // Try to connect to both services first - from identity.js
         identity.Connect(config.url, config.togglApiToken).done(function (res) {
+            myIdentity = res;
             $('#connectionDetails').addClass('success').removeClass('error')
                 .html('Toggl: ' + res.togglUserName + ' (' + res.togglEmailAddress + ') << connected >> JIRA: ' + res.jiraUserName + ' (' + res.jiraEmailAddress + ')');
             // Finally fetch the Toggl entries
@@ -119,7 +121,7 @@ function fetchEntries() {
         entries.forEach(function (entry) {
             entry.description = entry.description || 'no-description';
             var issue = entry.description.split(' ')[0];
-
+            // from dateTimeHelpers.js
             var togglTime = dateTimeHelpers.roundUpTogglDuration(entry.duration, config.roundMinutes);
             var dateString = dateTimeHelpers.toJiraWhateverDateTime(entry.start);
             var dateKey = dateTimeHelpers.createDateKey(entry.start);
@@ -204,7 +206,7 @@ function renderList() {
             function success(response) {
                 var worklogs = response.worklogs;
                 worklogs.forEach(function (worklog) {
-                    if (!!myEmailAddress && !!worklog.author && worklog.author.emailAddress !== myEmailAddress) { return; }
+                    if (!!myIdentity.jiraEmailAddress && !!worklog.author && worklog.author.emailAddress !== myIdentity.jiraEmailAddress) { return; }
 
                     var diff = Math.floor(worklog.timeSpentSeconds / 60) - Math.floor(log.timeSpentInt / 60);
                     if (

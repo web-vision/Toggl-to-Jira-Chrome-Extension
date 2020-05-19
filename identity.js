@@ -38,11 +38,9 @@ var identity = {
             this.ConnectToJira(jiraURL),
             this.ConnectToToggl(togglApiToken)
         ).then(function (jiraResult, togglResult) {
-            return result = { // transform the result
-                jiraUserName: jiraResult.jiraUserName,
-                jiraEmailAddress: jiraResult.jiraEmailAddress,
-                togglUserName: togglResult.togglUserName,
-                togglEmailAddress: togglResult.togglEmailAddress
+            return result = { // transform the result, merge the other results
+                ...jiraResult,
+                ...togglResult
             }
         });
     }
