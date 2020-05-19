@@ -56,9 +56,9 @@ function testConfiguration() {
 
     // Display the Jira result
     var jiraTestResult = $('#jiraTestResult');
-    identity.ConnectToJira(url).done(function (jiraResult) {
+    identity.ConnectToJira(url).done(function (res) {
         jiraTestResult.removeClass('error').addClass('success');
-        jiraTestResult.text('Connected to Jira as ' + jiraResult.displayName + ' (' + jiraResult.emailAddress + ')');
+        jiraTestResult.text('Connected to Jira as ' + res.jiraUserName + ' (' + res.jiraEmailAddress + ')');
     })
     .fail(function () {
         jiraTestResult.removeClass('success').addClass('error');
@@ -67,9 +67,9 @@ function testConfiguration() {
 
     // Display the Toggl result
     var togglTestResult = $('#togglTestResult');
-    identity.ConnectToToggl(togglApiToken).done(function (togglResult) {
+    identity.ConnectToToggl(togglApiToken).done(function (res) {
         togglTestResult.removeClass('error').addClass('success');
-        togglTestResult.text('Connected to Toggl as ' + togglResult.data.fullname + ' (' + togglResult.data.email + ')');
+        togglTestResult.text('Connected to Toggl as ' + res.togglUserName + ' (' + res.togglEmailAddress + ')');
     })
     .fail(function () {
         togglTestResult.removeClass('success').addClass('error');

@@ -1,9 +1,6 @@
 var logs = [];
 var config = {};
 
-var myEmailAddress = null;
-var myDisplayName = null;
-
 $(document).ready(function () {
 
     chrome.storage.sync.get({
@@ -42,20 +39,19 @@ $(document).ready(function () {
         $('#end-picker').on('change', fetchEntries);
         $('#submit').on('click', submitEntries);
 
-        getMyData()
-        fetchEntries();
+        // Try to connect to both services first
+        identity.Connect(config.url, config.togglApiToken).done(function (res) {
+            $('#connectionDetails').addClass('success').removeClass('error')
+                .html('Toggl: ' + res.togglUserName + ' (' + res.togglEmailAddress + ') << connected >> JIRA: ' + res.jiraUserName + ' (' + res.jiraEmailAddress + ')');
+            // Finally fetch the Toggl entries
+            fetchEntries();
+        }).fail(function () {
+            $('#connectionDetails').addClass('error').removeClass('success')
+                .html('Connecting to Toggl or JIRA failed. Check your configuration options.');
+        });
+
     });
 });
-
-function getMyData() {
-    $.get(config.url + '/rest/api/2/myself',
-        function success(response) {
-            myEmailAddress = response.emailAddress;
-            myDisplayName = response.displayName;
-
-            $('#myDisplayName').html(myDisplayName + ' (' + myEmailAddress + ')')
-        });
-}
 
 function submitEntries() {
 
@@ -123,7 +119,7 @@ function fetchEntries() {
         entries.forEach(function (entry) {
             entry.description = entry.description || 'no-description';
             var issue = entry.description.split(' ')[0];
-            
+
             var togglTime = dateTimeHelpers.roundUpTogglDuration(entry.duration, config.roundMinutes);
             var dateString = dateTimeHelpers.toJiraWhateverDateTime(entry.start);
             var dateKey = dateTimeHelpers.createDateKey(entry.start);
