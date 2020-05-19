@@ -4,6 +4,8 @@
     <head>
         <title>Toggl 2 Jira Options</title>
         <link href="style.css" rel="stylesheet" type="text/css" />
+        <script type="text/javascript" src="jquery.min.js"></script>
+        <script type="text/javascript" src="identity.js"></script>
     </head>
 
     <body>
@@ -14,12 +16,15 @@
         <br />
         <label>Jira Server URL</label> <i>( e.g. <b>https://jira.atlassian.net</b> no trailing / slash )</i>
         <input id="jira-url" style="width: 100%;" />
+        <label id="jiraTestResult"></label>
         <br />
         <br />
         <label>Toggl User API Token</label> <i>( Find yours at <b><a href="https://toggl.com/app/profile" target="_blank">https://toggl.com/app/profile</a></b> )</i>
         <input id="toggl-api-token" style="width: 100%;" />
+        <label id="togglTestResult"></label>
         <br />
         <br />
+        <button id="test">Test</button>
         <hr>
         <label><b>Options</b></label>
         <br />
@@ -45,9 +50,11 @@
         <br />
         <br />
         <hr>
-        <div id="status"></div>
+        <div id="status" class="success"></div>
         <button id="save">Save</button>
-        <script src="options.js"> </script>
+
+        <!-- Load last since it has pure javascript event handlers -->
+        <script src="options.js"></script>
     </body>
 
 </html>

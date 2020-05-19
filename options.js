@@ -46,5 +46,39 @@ function restoreOptions() {
     });
 }
 
+// Test connections to both Jira and Toggl
+function testConfiguration() {
+
+    var url = $('#jira-url').val();
+    var togglApiToken = $('#toggl-api-token').val();
+
+    // From identity.js this will try to connect to both services
+
+    // Display the Jira result
+    var jiraTestResult = $('#jiraTestResult');
+    identity.ConnectToJira(url).done(function (jiraResult) {
+        jiraTestResult.removeClass('error').addClass('success');
+        jiraTestResult.text('Connected to Jira as ' + jiraResult.displayName + ' (' + jiraResult.emailAddress + ')');
+    })
+    .fail(function () {
+        jiraTestResult.removeClass('success').addClass('error');
+        jiraTestResult.text('There was a problem with connecting to Jira. Have you got the right URL and are you logged in?');
+    });
+
+    // Display the Toggl result
+    var togglTestResult = $('#togglTestResult');
+    identity.ConnectToToggl(togglApiToken).done(function (togglResult) {
+        togglTestResult.removeClass('error').addClass('success');
+        togglTestResult.text('Connected to Toggl as ' + togglResult.data.fullname + ' (' + togglResult.data.email + ')');
+    })
+    .fail(function () {
+        togglTestResult.removeClass('success').addClass('error');
+        togglTestResult.text('There was a problem with connecting to Toggl. Have you provided the right API key?');
+    });
+
+}
+
+// Add handlers
 document.addEventListener('DOMContentLoaded', restoreOptions);
+document.getElementById('test').addEventListener('click', testConfiguration);
 document.getElementById('save').addEventListener('click', saveOptions);
