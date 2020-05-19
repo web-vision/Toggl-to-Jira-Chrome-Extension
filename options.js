@@ -22,6 +22,8 @@ function saveOptions() {
         setTimeout(function () {
             status.textContent = '';
         }, 750);
+        // Also run the configuration test on save
+        testConfiguration();
     });
 }
 
@@ -80,5 +82,4 @@ function testConfiguration() {
 
 // Add handlers
 document.addEventListener('DOMContentLoaded', restoreOptions);
-document.getElementById('test').addEventListener('click', testConfiguration);
 document.getElementById('save').addEventListener('click', saveOptions);
