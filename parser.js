@@ -6,7 +6,7 @@ $(document).ready(function () {
     chrome.storage.sync.get({
         url: 'https://jira.atlassian.net',
         togglApiToken: '',
-        comment: 'Updated via toggl-to-jira https://chrome.google.com/webstore/detail/toggl-to-jira/anbbcnldaagfjlhbfddpjlndmjcgkdpf',
+        comment: 'Updated via toggl-to-jira http://tiny.cc/t2j',
         mergeEntriesBy: 'no-merge',
         jumpToToday: false,
         roundMinutes: 0,
