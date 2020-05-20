@@ -3,12 +3,13 @@ var config = {};
 var myIdentity = {};
 
 $(document).ready(function () {
-
+    // Retrieve the stored options
     chrome.storage.sync.get({
         url: 'https://jira.atlassian.net',
         togglApiToken: '',
-        comment: 'Updated via toggl-to-jira http://tiny.cc/t2j',
         mergeEntriesBy: 'no-merge',
+        useTogglDescription: true,
+        comment: 'Updated via toggl-to-jira http://tiny.cc/t2j',
         jumpToToday: false,
         roundMinutes: 0,
     }, function (items) {
@@ -63,12 +64,24 @@ function submitEntries() {
         if (!log.submit) return;
         $('#result-' + log.id).text('Pending...').addClass('info');
         setTimeout(() => {
+
+            // comment to go with work log (this is called Work Description in Jira UI)
+            var comment = $("#comment-" + log.id).val() || '';
+            var workDescription = "";
+            if(config.useTogglDescription) {
+                workDescription = (comment.length > 0) ? (log.description + ' - ' + comment) : log.description;
+            } else {
+                workDescription = comment;
+            }
+
+            // Api body to send
             var body = JSON.stringify({
                 timeSpent: log.timeSpent,
-                comment: $("#comment-" + log.id).val() || '',
+                comment: workDescription,
                 started: log.started
             });
 
+            // Post to the Api
             $.post(config.url + '/rest/api/latest/issue/' + log.issue + '/worklog', body,
                 function success(response) {
                     console.log('success', response);
@@ -121,6 +134,7 @@ function fetchEntries() {
         entries.forEach(function (entry) {
             entry.description = entry.description || 'no-description';
             var issue = entry.description.split(' ')[0];
+            entry.description = entry.description.slice(issue.length + 1); // slice off the JIRA issue identifier
             // from dateTimeHelpers.js
             var togglTime = dateTimeHelpers.roundUpTogglDuration(entry.duration, config.roundMinutes);
             var dateString = dateTimeHelpers.toJiraWhateverDateTime(entry.start);
@@ -176,7 +190,7 @@ function renderList() {
         // link to jira ticket
         dom += '<td><a href="' + url + '" target="_blank">' + log.issue + '</a></td>';
 
-        dom += '<td>' + log.description.substr(log.issue.length).limit(35) + '</td>';
+        dom += '<td>' + log.description.limit(35) + '</td>';
         dom += '<td>' + log.started.toDDMM() + '</td>';
 
         if (log.timeSpentInt > 0) {
