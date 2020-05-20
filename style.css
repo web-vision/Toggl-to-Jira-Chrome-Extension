@@ -88,6 +88,10 @@ i {
     color: #11dda9;
 }
 
+.warning {
+    color: #f79423;
+}
+
 .error {
     color: #cc3329;
 }

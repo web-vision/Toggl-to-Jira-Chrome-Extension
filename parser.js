@@ -1,4 +1,5 @@
 var logs = [];
+var unloggableTogglEntries = 0;
 var config = {};
 var myIdentity = {};
 
@@ -128,12 +129,20 @@ function fetchEntries() {
             "Authorization": "Basic " + btoa(config.togglApiToken + ':api_token')
         }
     }, function (entries) {
+        // Reset on each fetch
         logs = [];
-        entries.reverse();
+        unloggableTogglEntries = 0;
 
+        entries.reverse();
         entries.forEach(function (entry) {
             entry.description = entry.description || 'no-description';
             var issue = entry.description.split(' ')[0];
+            // Validate the issue, if it's not in correct format, don't add to the table should be LETTERS-NUMBERS (XX-##)
+            if(!issue.includes('-') || !(Number(issue.split('-')[1]) > 0)) {
+                unloggableTogglEntries++;
+                return;
+            }
+
             entry.description = entry.description.slice(issue.length + 1); // slice off the JIRA issue identifier
             // from dateTimeHelpers.js
             var togglTime = dateTimeHelpers.roundUpTogglDuration(entry.duration, config.roundMinutes);
@@ -211,8 +220,11 @@ function renderList() {
         }
 
     })
-    // total time for displayed tickets
-    list.append('<tr><td></td><td></td><td></td><td><b>TOTAL</b></td><td>' + totalTime.toString().toHHMM() + '</td></tr>');
+    // Total Time for displayed tickets and count of unloggable Toggl entries
+    var totalRow = '<tr><td></td><td></td><td>';
+    if(unloggableTogglEntries > 0) totalRow += '<i class="warning">+' + unloggableTogglEntries + ' Toggl entries with no valid Jira issues</i>';
+    totalRow += '</td><td><b>TOTAL</b></td><td>' + totalTime.toString().toHHMM() + '</td></tr>';
+    list.append(totalRow);
 
     // check if entry was already logged
     logs.forEach(function (log) {
