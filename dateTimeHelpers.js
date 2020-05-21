@@ -76,6 +76,33 @@ String.prototype.toDDMM = function () {
 
 var dateTimeHelpers = {
 
+    // Get the timezone offset
+    timeZoneOffset: function (date) {
+        var timezone_offset_min = (date || new Date()).getTimezoneOffset(),
+            offset_hrs = parseInt(Math.abs(timezone_offset_min / 60)),
+            offset_min = Math.abs(timezone_offset_min % 60),
+            timezone_standard;
+
+        if (offset_hrs < 10)
+            offset_hrs = '0' + offset_hrs;
+
+        if (offset_min < 10)
+            offset_min = '0' + offset_min;
+
+        // Add an opposite sign to the offset
+        // If offset is 0, it means timezone is UTC
+        if (timezone_offset_min < 0)
+            timezone_standard = '+' + offset_hrs + ':' + offset_min;
+        else if (timezone_offset_min > 0)
+            timezone_standard = '-' + offset_hrs + ':' + offset_min;
+        else if (timezone_offset_min == 0)
+            timezone_standard = 'Z';
+
+        // Timezone difference in hours and minutes
+        // String such as +05:30 or -06:00 or Z
+        return timezone_standard;
+    },
+
     // Creates a key in ISO date format (0 padded) eg; 20200518 (18th May 2020)
     createDateKey: function (date) {
         var concatZero = (value) => {
@@ -109,38 +136,15 @@ var dateTimeHelpers = {
         }
     },
 
-    // toggl time should look like jira time (otherwise 500 Server Error is raised)
-    toJiraWhateverDateTime: function (date) {
-        // TOGGL:           at: "2016-03-14T11:02:55+00:00"
+    // Toggl time should look like jira time (otherwise 500 Server Error is raised)
+    // Toggl always returns the time in UTC so we just need to reformat but otherwise not mess with it
+    toJiraWhateverDateTime: function (togglDateString) {
+        // TOGGL:           start: "2020-05-20T03:00:05+00:00"
         // JIRA:     "started": "2012-02-15T17:34:37.937-0600"
-
-        var parsedDate = Date.parse(date);
-        var jiraDate = Date.now();
-
-        if (parsedDate) {
-            jiraDate = new Date(parsedDate);
-        }
-
-        var dateString = jiraDate.toISOString();
-
-        // timezone is something fucked up with minus and in minutes
-        // thatswhy divide it by -60 to get a positive value in numbers
-        // example -60 -> +1 (to convert it to GMT+0100)
-        var timeZone = jiraDate.getTimezoneOffset() / (-60);
-        var absTimeZone = Math.abs(timeZone);
-        var timeZoneString;
-        var sign = timeZone > 0 ? '+' : '-';
-
-        // take absolute because it can also be minus
-        if (absTimeZone < 10) {
-            timeZoneString = sign + '0' + absTimeZone + '00'
-        } else {
-            timeZoneString = sign + absTimeZone + '00'
-        }
-
-        dateString = dateString.replace('Z', timeZoneString);
-
-        return dateString;
+        var jiraDateString = togglDateString.slice(0, -6); // slice of the last "+00:00"
+        jiraDateString += ".000"; // add the milliseconds
+        jiraDateString += "-0000"; // add the timezone, which will always be UTC thanks to Toggl
+        return jiraDateString;
     }
 
 }

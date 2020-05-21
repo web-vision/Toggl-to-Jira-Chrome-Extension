@@ -114,15 +114,27 @@ function selectEntry() {
 }
 
 function fetchEntries() {
+    // toISOString gives us UTC midnight of the selected date
+    // eg; "2020-05-19T00:00:00.000Z" 
     var startDate = document.getElementById('start-picker').valueAsDate.toISOString();
     var endDate = document.getElementById('end-picker').valueAsDate.toISOString();
+    // We will store these as simple ISO dates to easily retrieve and set
     localStorage.setItem('toggl-to-jira.last-date', startDate);
     localStorage.setItem('toggl-to-jira.last-end-date', endDate);
+
+    // Toggl is expecting dates in ISO 8601 https://en.wikipedia.org/wiki/ISO_8601 with timezone offset
+    // eg; "2020-05-20T04:51:50+00:00"
+    // Because of timezones we want to slice off the Z from the ISO string and add the local offset
+    // This gives us an offset from midnight of the date (eg in NZ a date of 20/05/20 should actually be to 12pm on the 19th UTC)
+    var startDateWithTimezoneOffset = startDate.slice(0, -1) + dateTimeHelpers.timeZoneOffset();
+    var endDateWithTimezoneOffset = endDate.slice(0, -1) + dateTimeHelpers.timeZoneOffset();
     $('p#error').text("").removeClass('error');
 
-    var dateQuery = '?start_date=' + startDate + '&end_date=' + endDate;
+    // Encode the start and end times
+    var dateQuery = '?start_date=' + encodeURIComponent(startDateWithTimezoneOffset) + '&end_date=' + encodeURIComponent(endDateWithTimezoneOffset);
 
     // Toggl API call with token authorisation header
+    // https://github.com/toggl/toggl_api_docs/blob/master/chapters/time_entries.md
     $.get({
         url: 'https://www.toggl.com/api/v8/time_entries' + dateQuery,
         headers: {
@@ -146,7 +158,7 @@ function fetchEntries() {
             entry.description = entry.description.slice(issue.length + 1); // slice off the JIRA issue identifier
             // from dateTimeHelpers.js
             var togglTime = dateTimeHelpers.roundUpTogglDuration(entry.duration, config.roundMinutes);
-            var dateString = dateTimeHelpers.toJiraWhateverDateTime(entry.start);
+            var dateString = dateTimeHelpers.toJiraWhateverDateTime(entry.start); // this means the Jira work log entry will have a matching start time to the Toggl entry
             var dateKey = dateTimeHelpers.createDateKey(entry.start);
 
             var log = _.find(logs, function (log) {
@@ -169,7 +181,7 @@ function fetchEntries() {
                     submit: (togglTime > 0),
                     timeSpentInt: togglTime,
                     timeSpent: togglTime > 0 ? togglTime.toString().toHHMM() : 'still running...',
-                    comment: config.comment,
+                    comment: config.comment, // default comment
                     started: dateString,
                     dateKey: dateKey,
                 };
