@@ -86,6 +86,10 @@ function testConfiguration() {
 $(function () {
     restoreOptions();
     $('#save').on('click', saveOptions);
+    // Take you back to the popup on close
+    $('#close').on('click', function () {
+        window.location = "popup.html"
+    });
     // only no-merge can be used with useTogglDescription    
     $('#merge-entries-by').on('change', function () {
         if ($(this).val() != "no-merge") {
