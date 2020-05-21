@@ -1,107 +1,27 @@
 var logs = [];
+var unloggableTogglEntries = 0;
 var config = {};
-
-var myEmailAddress = null;
-var myDisplayName = null;
-
-String.prototype.limit = function (limit) {
-    return this.length > limit ? this.substr(0, limit) + '...' : this;
-}
-
-String.prototype.toHHMMSS = function () {
-    // don't forget the second param
-    var secNum = parseInt(this, 10);
-    var hours = Math.floor(secNum / 3600);
-    var minutes = Math.floor((secNum - (hours * 3600)) / 60);
-    var seconds = secNum - (hours * 3600) - (minutes * 60);
-
-    if (hours < 10) {
-        hours = '0' + hours;
-    }
-    if (minutes < 10) {
-        minutes = '0' + minutes;
-    }
-    if (seconds < 10) {
-        seconds = '0' + seconds;
-    }
-    var time = hours + 'h ' + minutes + 'm ' + seconds + 's';
-    return time;
-}
-
-String.prototype.toHHMM = function () {
-    // don't forget the second param
-    var secNum = parseInt(this, 10);
-    var hours = Math.floor(secNum / 3600);
-    var minutes = Math.floor((secNum - (hours * 3600)) / 60);
-
-    // set minimum as 1 minute
-    if (hours + minutes === 0) minutes = 1;
-
-    // pad zero
-    if (hours < 10) {
-        hours = '0' + hours;
-    }
-    // pad zero
-    if (minutes < 10) {
-        minutes = '0' + minutes;
-    }
-
-    var time = hours + 'h ' + minutes + 'm';
-    return time;
-}
-String.prototype.toHH_MM = function () {
-    // don't forget the second param
-    var secNum = parseInt(this, 10);
-    var hours = Math.floor(secNum / 3600);
-    var minutes = Math.floor((secNum - (hours * 3600)) / 60);
-
-    if (hours < 10) {
-        hours = '0' + hours;
-    }
-    if (minutes < 10) {
-        minutes = '0' + minutes;
-    }
-
-    var time = hours + ':' + minutes;
-    return time;
-}
-String.prototype.toDDMM = function () {
-    // don't forget the second param
-    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    var d = new Date(this);
-    return monthNames[d.getMonth()] + ' ' + d.getDate();
-    // return d.getDate() + '.' + (d.getMonth() + 1) + '.';
-}
-
-function createDateKey(date) {
-    var concatZero = (value) => {
-        if (value < 10) {
-            return '0' + value;
-        } else {
-            return '' + value;
-        }
-    }
-
-    var d = new Date(date);
-    return '' + d.getFullYear() + concatZero(d.getMonth() + 1) + concatZero(d.getDate());
-}
+var myIdentity = {};
 
 $(document).ready(function () {
-
+    // Retrieve the stored options
     chrome.storage.sync.get({
         url: 'https://jira.atlassian.net',
-        comment: 'Updated via toggl-to-jira https://chrome.google.com/webstore/detail/toggl-to-jira/anbbcnldaagfjlhbfddpjlndmjcgkdpf',
+        togglApiToken: '',
         mergeEntriesBy: 'no-merge',
+        useTogglDescription: true,
+        comment: 'Updated via toggl-to-jira http://tiny.cc/t2j',
         jumpToToday: false,
         roundMinutes: 0,
     }, function (items) {
         config = items;
         console.log('Fetching toggl entries for today.', 'Jira url: ', config.url, config);
 
+        // Configure AJAX for Jira requests that we are intercepting
         $.ajaxSetup({
             contentType: 'application/json',
             headers: {
-                'forgeme': 'true',
+                'forgeJira': 'true',
                 'X-Atlassian-Token': 'nocheck',
                 'Access-Control-Allow-Origin': '*'
             },
@@ -122,22 +42,20 @@ $(document).ready(function () {
         $('#end-picker').on('change', fetchEntries);
         $('#submit').on('click', submitEntries);
 
-        getMyData()
-        fetchEntries();
+        // Try to connect to both services first - from identity.js
+        identity.Connect(config.url, config.togglApiToken).done(function (res) {
+            myIdentity = res;
+            $('#connectionDetails').addClass('success').removeClass('error')
+                .html('Toggl: ' + res.togglUserName + ' (' + res.togglEmailAddress + ') << connected >> JIRA: ' + res.jiraUserName + ' (' + res.jiraEmailAddress + ')');
+            // Finally fetch the Toggl entries
+            fetchEntries();
+        }).fail(function () {
+            $('#connectionDetails').addClass('error').removeClass('success')
+                .html('Connecting to Toggl or JIRA failed. Check your configuration options.');
+        });
+
     });
 });
-
-
-
-function getMyData() {
-    $.get(config.url + '/rest/api/2/myself',
-        function success(response) {
-            myEmailAddress = response.emailAddress;
-            myDisplayName = response.displayName;
-
-            $('#myDisplayName').html(myDisplayName + ' (' + myEmailAddress + ')')
-        });
-}
 
 function submitEntries() {
 
@@ -147,12 +65,24 @@ function submitEntries() {
         if (!log.submit) return;
         $('#result-' + log.id).text('Pending...').addClass('info');
         setTimeout(() => {
+
+            // comment to go with work log (this is called Work Description in Jira UI)
+            var comment = $("#comment-" + log.id).val() || '';
+            var workDescription = "";
+            if(config.useTogglDescription) {
+                workDescription = (comment.length > 0) ? (log.description + ' - ' + comment) : log.description;
+            } else {
+                workDescription = comment;
+            }
+
+            // Api body to send
             var body = JSON.stringify({
                 timeSpent: log.timeSpent,
-                comment: $("#comment-" + log.id).val() || '',
+                comment: workDescription,
                 started: log.started
             });
 
+            // Post to the Api
             $.post(config.url + '/rest/api/latest/issue/' + log.issue + '/worklog', body,
                 function success(response) {
                     console.log('success', response);
@@ -184,25 +114,52 @@ function selectEntry() {
 }
 
 function fetchEntries() {
+    // toISOString gives us UTC midnight of the selected date
+    // eg; "2020-05-19T00:00:00.000Z" 
     var startDate = document.getElementById('start-picker').valueAsDate.toISOString();
     var endDate = document.getElementById('end-picker').valueAsDate.toISOString();
+    // We will store these as simple ISO dates to easily retrieve and set
     localStorage.setItem('toggl-to-jira.last-date', startDate);
     localStorage.setItem('toggl-to-jira.last-end-date', endDate);
+
+    // Toggl is expecting dates in ISO 8601 https://en.wikipedia.org/wiki/ISO_8601 with timezone offset
+    // eg; "2020-05-20T04:51:50+00:00"
+    // Because of timezones we want to slice off the Z from the ISO string and add the local offset
+    // This gives us an offset from midnight of the date (eg in NZ a date of 20/05/20 should actually be to 12pm on the 19th UTC)
+    var startDateWithTimezoneOffset = startDate.slice(0, -1) + dateTimeHelpers.timeZoneOffset();
+    var endDateWithTimezoneOffset = endDate.slice(0, -1) + dateTimeHelpers.timeZoneOffset();
     $('p#error').text("").removeClass('error');
 
-    var dateQuery = '?start_date=' + startDate + '&end_date=' + endDate;
+    // Encode the start and end times
+    var dateQuery = '?start_date=' + encodeURIComponent(startDateWithTimezoneOffset) + '&end_date=' + encodeURIComponent(endDateWithTimezoneOffset);
 
-    $.get('https://www.toggl.com/api/v8/time_entries' + dateQuery, function (entries) {
+    // Toggl API call with token authorisation header
+    // https://github.com/toggl/toggl_api_docs/blob/master/chapters/time_entries.md
+    $.get({
+        url: 'https://www.toggl.com/api/v8/time_entries' + dateQuery,
+        headers: {
+            "Authorization": "Basic " + btoa(config.togglApiToken + ':api_token')
+        }
+    }, function (entries) {
+        // Reset on each fetch
         logs = [];
-        entries.reverse();
+        unloggableTogglEntries = 0;
 
+        entries.reverse();
         entries.forEach(function (entry) {
             entry.description = entry.description || 'no-description';
             var issue = entry.description.split(' ')[0];
-            var togglTime = roundUp(entry.duration, config.roundMinutes);
+            // Validate the issue, if it's not in correct format, don't add to the table should be LETTERS-NUMBERS (XX-##)
+            if(!issue.includes('-') || !(Number(issue.split('-')[1]) > 0)) {
+                unloggableTogglEntries++;
+                return;
+            }
 
-            var dateString = toJiraWhateverDateTime(entry.start);
-            var dateKey = createDateKey(entry.start);
+            entry.description = entry.description.slice(issue.length + 1); // slice off the JIRA issue identifier
+            // from dateTimeHelpers.js
+            var togglTime = dateTimeHelpers.roundUpTogglDuration(entry.duration, config.roundMinutes);
+            var dateString = dateTimeHelpers.toJiraWhateverDateTime(entry.start); // this means the Jira work log entry will have a matching start time to the Toggl entry
+            var dateKey = dateTimeHelpers.createDateKey(entry.start);
 
             var log = _.find(logs, function (log) {
                 if (config.mergeEntriesBy === 'issue-and-date') {
@@ -224,7 +181,7 @@ function fetchEntries() {
                     submit: (togglTime > 0),
                     timeSpentInt: togglTime,
                     timeSpent: togglTime > 0 ? togglTime.toString().toHHMM() : 'still running...',
-                    comment: config.comment,
+                    comment: config.comment, // default comment
                     started: dateString,
                     dateKey: dateKey,
                 };
@@ -235,61 +192,6 @@ function fetchEntries() {
 
         renderList();
     });
-}
-
-/**
-* Round duration up to next `minutes`.
-* No rounding will be applied if minutes is zero.
-* 
-* Example: round to next quater:
-*  roundUp(22, 15) = 30 // rounded to the next quarter
-*  roundUp(35, 60) = 60 // round to full hour
-*  roundUp(11, 0) = 11 // ignored rounding
-*/
-function roundUp(initialDuration, rounding_minutes) {
-    var minutesDuration = initialDuration / 60
-    if (minutesDuration == 0) {
-        return initialDuration;
-    } else {
-        // make sure minium `minutes` are tracked
-        var roundedDuration = (Math.floor(minutesDuration / rounding_minutes) + 1) * rounding_minutes;
-        return roundedDuration * 60;
-    }
-}
-
-function toJiraWhateverDateTime(date) {
-    // TOGGL:           at: "2016-03-14T11:02:55+00:00"
-    // JIRA:    "started": "2012-02-15T17:34:37.937-0600"
-
-    // toggl time should look like jira time (otherwise 500 Server Error is raised)
-
-    var parsedDate = Date.parse(date);
-    var jiraDate = Date.now();
-
-    if (parsedDate) {
-        jiraDate = new Date(parsedDate);
-    }
-
-    var dateString = jiraDate.toISOString();
-
-    // timezone is something fucked up with minus and in minutes
-    // thatswhy divide it by -60 to get a positive value in numbers
-    // example -60 -> +1 (to convert it to GMT+0100)
-    var timeZone = jiraDate.getTimezoneOffset() / (-60);
-    var absTimeZone = Math.abs(timeZone);
-    var timeZoneString;
-    var sign = timeZone > 0 ? '+' : '-';
-
-    // take absolute because it can also be minus
-    if (absTimeZone < 10) {
-        timeZoneString = sign + '0' + absTimeZone + '00'
-    } else {
-        timeZoneString = sign + absTimeZone + '00'
-    }
-
-    dateString = dateString.replace('Z', timeZoneString);
-
-    return dateString;
 }
 
 function renderList() {
@@ -309,7 +211,7 @@ function renderList() {
         // link to jira ticket
         dom += '<td><a href="' + url + '" target="_blank">' + log.issue + '</a></td>';
 
-        dom += '<td>' + log.description.substr(log.issue.length).limit(35) + '</td>';
+        dom += '<td>' + log.description.limit(35) + '</td>';
         dom += '<td>' + log.started.toDDMM() + '</td>';
 
         if (log.timeSpentInt > 0) {
@@ -330,8 +232,11 @@ function renderList() {
         }
 
     })
-    // total time for displayed tickets
-    list.append('<tr><td></td><td></td><td></td><td><b>TOTAL</b></td><td>' + totalTime.toString().toHHMM() + '</td></tr>');
+    // Total Time for displayed tickets and count of unloggable Toggl entries
+    var totalRow = '<tr><td></td><td></td><td>';
+    if(unloggableTogglEntries > 0) totalRow += '<i class="warning">+' + unloggableTogglEntries + ' Toggl entries with no valid Jira issues</i>';
+    totalRow += '</td><td><b>TOTAL</b></td><td>' + totalTime.toString().toHHMM() + '</td></tr>';
+    list.append(totalRow);
 
     // check if entry was already logged
     logs.forEach(function (log) {
@@ -339,7 +244,7 @@ function renderList() {
             function success(response) {
                 var worklogs = response.worklogs;
                 worklogs.forEach(function (worklog) {
-                    if (!!myEmailAddress && !!worklog.author && worklog.author.emailAddress !== myEmailAddress) { return; }
+                    if (!!myIdentity.jiraEmailAddress && !!worklog.author && worklog.author.emailAddress !== myIdentity.jiraEmailAddress) { return; }
 
                     var diff = Math.floor(worklog.timeSpentSeconds / 60) - Math.floor(log.timeSpentInt / 60);
                     if (

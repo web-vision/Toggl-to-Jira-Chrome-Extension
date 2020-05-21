@@ -1,23 +1,29 @@
 /*
  *  Copyright (c) 2016 Frank Trigub. All rights reserved.*
     frankyyyy at live com
+
+    Background process that intercepts all web requests.
+    Jira requests that we make are then forged as if coming from Jira.
 */
 
 console.log('Starting extension');
 
+// Retrieve the configured Jira URL
 var jiraUrl;
-var togglApiToken;
 chrome.storage.sync.get({
-    url: 'https://jira.atlassian.net',
-    togglApiToken: '',
+    url: 'https://jira.atlassian.net'
 }, function (items) {
     jiraUrl = items.url;
-    togglApiToken = items.togglApiToken;
 });
 
+// Handler to intercept Jira requests
 var requestFilter = { urls: ['<all_urls>'] };
 var extraInfoSpec = ['requestHeaders', 'blocking'];
 var handler = function (details) {
+
+    // We only need to intercept jira requests
+    var jiraRequest = details.url.indexOf(jiraUrl) > -1;
+    if(!jiraRequest) return;
 
     var isRefererSet = false;
     var originSet = false;
@@ -26,10 +32,10 @@ var handler = function (details) {
     var headers = details.requestHeaders;
     var blockingResponse = {};
 
-    var togglRequest = details.url.indexOf('toggl.com') > -1;
-
+    // We only need to forge requests that we are making
+    // We set an extra header in our requests
     for (var j = 0, k = headers.length; j < k; ++j) {
-        if (headers[j].name === 'forgeme') {
+        if (headers[j].name === 'forgeJira') {
             forge = true;
         }
     }
@@ -62,18 +68,11 @@ var handler = function (details) {
         }
     }
 
-    if (togglRequest && togglApiToken.trim() !== '') {
-        var b64Authorization = togglApiToken + ':api_token';
-        headers.push({
-            name: 'Authorization',
-            value: 'Basic ' + btoa(b64Authorization)
-        });
-    }
-
     blockingResponse.requestHeaders = headers;
     return blockingResponse;
 };
 
+// Intercept all requests
 chrome.webRequest.onBeforeSendHeaders.addListener(handler, requestFilter, extraInfoSpec);
 
 
