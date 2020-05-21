@@ -15,6 +15,10 @@ $(document).ready(function () {
         roundMinutes: 0,
     }, function (items) {
         config = items;
+
+        // If this is a new user, direct them to the Options page straight away
+        if(config.togglApiToken == '') window.location = "options.html";
+
         console.log('Fetching toggl entries for today.', 'Jira url: ', config.url, config);
 
         // Configure AJAX for Jira requests that we are intercepting
