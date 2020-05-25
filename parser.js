@@ -34,13 +34,15 @@ $(document).ready(function () {
             }
         });
 
+        // The browser datepicker will display a date in UTC if given a local datetime (stupid)
+        // So we need to convert the local datetime into a local date string
         var startString = localStorage.getItem('toggl-to-jira.last-date');
-        var startDate = config.jumpToToday || !startString ? new Date() : new Date(startString);
-        document.getElementById('start-picker').valueAsDate = startDate;
+        var startDate = (config.jumpToToday || !startString) ? dateTimeHelpers.localDateISOString() : dateTimeHelpers.localDateISOString(new Date(startString));
+        $('#start-picker').val(startDate);
 
         var endString = localStorage.getItem('toggl-to-jira.last-end-date');
-        var endDate = config.jumpToToday || !endString ? new Date(Date.now() + (3600 * 24 * 1000)) : new Date(endString);
-        document.getElementById('end-picker').valueAsDate = endDate;
+        var endDate = (config.jumpToToday || !endString) ? dateTimeHelpers.localDateISOString(new Date(Date.now() + (3600 * 24 * 1000))) : dateTimeHelpers.localDateISOString(new Date(endString));
+        $('#end-picker').val(endDate);
 
         $('#start-picker').on('change', fetchEntries);
         $('#end-picker').on('change', fetchEntries);
