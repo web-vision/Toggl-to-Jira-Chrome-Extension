@@ -231,7 +231,7 @@ function renderList() {
         dom += '<td><a href="' + url + '" target="_blank">' + log.issue + '</a></td>';
 
         dom += '<td>' + log.description.limit(35) + '</td>';
-        dom += '<td>' + log.started.toDDMM() + '</td>';
+        dom += '<td>' + log.started.toMMMDD() + '</td>';
 
         if (log.timeSpentInt > 0) {
             dom += '<td>' + log.timeSpentInt.toString().toHH_MM() + '</td>';
@@ -263,15 +263,24 @@ function renderList() {
             function success(response) {
                 var worklogs = response.worklogs;
                 worklogs.forEach(function (worklog) {
+                    // If the entry isn't for us we can skip it
                     if (!!myIdentity.jiraEmailAddress && !!worklog.author && worklog.author.emailAddress !== myIdentity.jiraEmailAddress) { return; }
 
+                    // Try to match on worklog start date time
+                    var dateTimeMatch = false;
+                    if(config.mergeEntriesBy == 'no-merge') { // we need to match on each specific entry by day/month/start time
+                        dateTimeMatch = (worklog.started.toMMMDDHHMM() === log.started.toMMMDDHHMM());
+                    } else { // we can match on just day/month
+                        dateTimeMatch = (worklog.started.toMMMDD() === log.started.toMMMDD());
+                    }
+
+                    // Try to match on worklog duration
                     var diff = Math.floor(worklog.timeSpentSeconds / 60) - Math.floor(log.timeSpentInt / 60);
-                    if (
-                        // if date and month matches
-                        worklog.started.toDDMM() === log.started.toDDMM() &&
-                        // if duration is within 4 minutes because JIRA is rounding worklog minutes :facepalm:
-                        diff < 4 && diff > -4
-                    ) {
+                    // if duration is within 4 minutes because JIRA is rounding worklog minutes :facepalm:
+                    var durationMatch = (diff < 4 && diff > -4);
+
+                    // Matching entries are not able to be logged again
+                    if (dateTimeMatch && durationMatch) {
                         $('#result-' + log.id).text('OK').addClass('success').removeClass('info');
                         $('#input-' + log.id).removeAttr('checked').attr('disabled', 'disabled');
                         $("#comment-" + log.id).val(worklog.comment || '').attr('disabled', 'disabled');

@@ -50,6 +50,7 @@ String.prototype.toHHMM = function () {
     var time = hours + 'h ' + minutes + 'm';
     return time;
 }
+
 String.prototype.toHH_MM = function () {
     // don't forget the second param
     var secNum = parseInt(this, 10);
@@ -67,11 +68,18 @@ String.prototype.toHH_MM = function () {
     return time;
 }
 
-String.prototype.toDDMM = function () {
+String.prototype.toMMMDD = function () {
     // don't forget the second param
     var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     var d = new Date(this);
     return monthNames[d.getMonth()] + ' ' + d.getDate();
+}
+
+String.prototype.toMMMDDHHMM = function () {
+    // don't forget the second param
+    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var d = new Date(this);
+    return monthNames[d.getMonth()] + ' ' + d.getDate() + ' ' + d.getHours() + '' + d.getMinutes();
 }
 
 var dateTimeHelpers = {
