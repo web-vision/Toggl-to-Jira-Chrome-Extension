@@ -44,10 +44,6 @@ $(document).ready(function () {
         var endDate = (config.jumpToToday || !endString) ? dateTimeHelpers.localDateISOString(new Date(Date.now() + (3600 * 24 * 1000))) : dateTimeHelpers.localDateISOString(new Date(endString));
         $('#end-picker').val(endDate);
 
-        $('#start-picker').on('change', fetchEntries);
-        $('#end-picker').on('change', fetchEntries);
-        $('#submit').on('click', submitEntries);
-
         // Try to connect to both services first - from identity.js
         identity.Connect(config.url, config.togglApiToken).done(function (res) {
             myIdentity = res;
@@ -58,6 +54,23 @@ $(document).ready(function () {
         }).fail(function () {
             $('#connectionDetails').addClass('error').removeClass('success')
                 .html('Connecting to Toggl or JIRA failed. Check your configuration options.');
+        });
+
+        // Add event handlers
+        $('#start-picker').on('change', fetchEntries);
+        $('#end-picker').on('change', fetchEntries);
+        $('#submit').on('click', submitEntries);
+
+        // Shortcut buttons for moving between days
+        $('#previous-day').on('click', function () {
+            $('#start-picker').val(dateTimeHelpers.localDateISOString(dateTimeHelpers.addDays(document.getElementById('start-picker').valueAsDate, -1)));
+            $('#end-picker').val(dateTimeHelpers.localDateISOString(dateTimeHelpers.addDays(document.getElementById('end-picker').valueAsDate, -1)));
+            fetchEntries();
+        });
+        $('#next-day').on('click', function () {
+            $('#start-picker').val(dateTimeHelpers.localDateISOString(dateTimeHelpers.addDays(document.getElementById('start-picker').valueAsDate, 1)));
+            $('#end-picker').val(dateTimeHelpers.localDateISOString(dateTimeHelpers.addDays(document.getElementById('end-picker').valueAsDate, 1)));
+            fetchEntries();
         });
 
     });
@@ -269,3 +282,4 @@ function renderList() {
     });
 
 }
+

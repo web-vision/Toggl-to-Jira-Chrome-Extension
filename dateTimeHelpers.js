@@ -115,6 +115,13 @@ var dateTimeHelpers = {
         return value;
     },
 
+    // Take a date, add days and return a new date
+    addDays: function (date, days) {
+        var newDate = (date || new Date()); // default to now
+        var days = (days || 1); // default to 1
+        return new Date(newDate.setDate(newDate.getDate() + days));
+    },
+
     /*
     * Round duration up to next `minutes`.
     * No rounding will be applied if minutes is zero.
