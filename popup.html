@@ -34,10 +34,12 @@
             Log toggl entries to JIRA tasks via <strong>log work</strong>
         </p>
         <fieldset>
-            <label for="start-date">Start Date</label>
+            <label for="start-date" style="padding-left: 5px;">Start Date</label>
             <input type="date" name="start-date" id="start-picker" />
-            <label for="end-date">End Date</label>
+            <label for="end-date" style="padding-left: 10px;">End Date</label>
             <input type="date" name="end-date" id="end-picker" />
+            <button id='next-day' title="Next Day" class="littleButton">&gt;</button>
+            <button id='previous-day' title="Previous Day" class="littleButton">&lt;</button>
         </fieldset>
         <br />
         <table>
@@ -68,11 +70,9 @@
             <tbody id="toggle-entries">
             </tbody>
         </table>
-        <br />
         <button id="submit">Log work to JIRA</button>
         <br />
         <p id="error"></p>
-        <i>Logging repeatedly will add new time logs for the same JIRA task, instead of overwriting the old log. So log only once per Toggl entry.</i>
     </body>
 
 </html>

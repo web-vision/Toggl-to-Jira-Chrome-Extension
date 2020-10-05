@@ -50,6 +50,7 @@ String.prototype.toHHMM = function () {
     var time = hours + 'h ' + minutes + 'm';
     return time;
 }
+
 String.prototype.toHH_MM = function () {
     // don't forget the second param
     var secNum = parseInt(this, 10);
@@ -67,27 +68,34 @@ String.prototype.toHH_MM = function () {
     return time;
 }
 
-String.prototype.toDDMM = function () {
+String.prototype.toMMMDD = function () {
     // don't forget the second param
     var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     var d = new Date(this);
     return monthNames[d.getMonth()] + ' ' + d.getDate();
 }
 
+String.prototype.toMMMDDHHMM = function () {
+    // don't forget the second param
+    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var d = new Date(this);
+    return monthNames[d.getMonth()] + ' ' + d.getDate() + ' ' + d.getHours() + '' + d.getMinutes();
+}
+
 var dateTimeHelpers = {
 
-    // Get the timezone offset
+    // DateTimePicker local date (ignore time zones) eg; '2020-05-26'
+    localDateISOString: function (date) {
+        var localDate = (date || new Date());
+        return localDate.getFullYear() + '-' + this.padZero(localDate.getMonth() + 1) + '-' + this.padZero(localDate.getDate());
+    },
+
+    // Get the timezone offset eg; +12:00
     timeZoneOffset: function (date) {
         var timezone_offset_min = (date || new Date()).getTimezoneOffset(),
-            offset_hrs = parseInt(Math.abs(timezone_offset_min / 60)),
-            offset_min = Math.abs(timezone_offset_min % 60),
+            offset_hrs = this.padZero(parseInt(Math.abs(timezone_offset_min / 60))),
+            offset_min = this.padZero(Math.abs(timezone_offset_min % 60)),
             timezone_standard;
-
-        if (offset_hrs < 10)
-            offset_hrs = '0' + offset_hrs;
-
-        if (offset_min < 10)
-            offset_min = '0' + offset_min;
 
         // Add an opposite sign to the offset
         // If offset is 0, it means timezone is UTC
@@ -103,18 +111,23 @@ var dateTimeHelpers = {
         return timezone_standard;
     },
 
-    // Creates a key in ISO date format (0 padded) eg; 20200518 (18th May 2020)
+    // Creates a key in ISO date format (0 padded) eg; 20200518
     createDateKey: function (date) {
-        var concatZero = (value) => {
-            if (value < 10) {
-                return '0' + value;
-            } else {
-                return '' + value;
-            }
-        }
-
         var d = new Date(date);
-        return '' + d.getFullYear() + concatZero(d.getMonth() + 1) + concatZero(d.getDate());
+        return '' + d.getFullYear() + this.padZero(d.getMonth() + 1) + this.padZero(d.getDate());
+    },
+
+    // Padding for < 10 numbers
+    padZero: function (value) {
+        if(value < 10) return '0' + value;
+        return value;
+    },
+
+    // Take a date, add days and return a new date
+    addDays: function (date, days) {
+        var newDate = (date || new Date()); // default to now
+        var days = (days || 1); // default to 1
+        return new Date(newDate.setDate(newDate.getDate() + days));
     },
 
     /*

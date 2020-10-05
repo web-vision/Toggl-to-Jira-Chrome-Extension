@@ -15,6 +15,10 @@ $(document).ready(function () {
         roundMinutes: 0,
     }, function (items) {
         config = items;
+
+        // If this is a new user, direct them to the Options page straight away
+        if(config.togglApiToken == '') window.location = "options.html";
+
         console.log('Fetching toggl entries for today.', 'Jira url: ', config.url, config);
 
         // Configure AJAX for Jira requests that we are intercepting
@@ -30,17 +34,15 @@ $(document).ready(function () {
             }
         });
 
+        // The browser datepicker will display a date in UTC if given a local datetime (stupid)
+        // So we need to convert the local datetime into a local date string
         var startString = localStorage.getItem('toggl-to-jira.last-date');
-        var startDate = config.jumpToToday || !startString ? new Date() : new Date(startString);
-        document.getElementById('start-picker').valueAsDate = startDate;
+        var startDate = (config.jumpToToday || !startString) ? dateTimeHelpers.localDateISOString() : dateTimeHelpers.localDateISOString(new Date(startString));
+        $('#start-picker').val(startDate);
 
         var endString = localStorage.getItem('toggl-to-jira.last-end-date');
-        var endDate = config.jumpToToday || !endString ? new Date(Date.now() + (3600 * 24 * 1000)) : new Date(endString);
-        document.getElementById('end-picker').valueAsDate = endDate;
-
-        $('#start-picker').on('change', fetchEntries);
-        $('#end-picker').on('change', fetchEntries);
-        $('#submit').on('click', submitEntries);
+        var endDate = (config.jumpToToday || !endString) ? dateTimeHelpers.localDateISOString(new Date(Date.now() + (3600 * 24 * 1000))) : dateTimeHelpers.localDateISOString(new Date(endString));
+        $('#end-picker').val(endDate);
 
         // Try to connect to both services first - from identity.js
         identity.Connect(config.url, config.togglApiToken).done(function (res) {
@@ -52,6 +54,23 @@ $(document).ready(function () {
         }).fail(function () {
             $('#connectionDetails').addClass('error').removeClass('success')
                 .html('Connecting to Toggl or JIRA failed. Check your configuration options.');
+        });
+
+        // Add event handlers
+        $('#start-picker').on('change', fetchEntries);
+        $('#end-picker').on('change', fetchEntries);
+        $('#submit').on('click', submitEntries);
+
+        // Shortcut buttons for moving between days
+        $('#previous-day').on('click', function () {
+            $('#start-picker').val(dateTimeHelpers.localDateISOString(dateTimeHelpers.addDays(document.getElementById('start-picker').valueAsDate, -1)));
+            $('#end-picker').val(dateTimeHelpers.localDateISOString(dateTimeHelpers.addDays(document.getElementById('end-picker').valueAsDate, -1)));
+            fetchEntries();
+        });
+        $('#next-day').on('click', function () {
+            $('#start-picker').val(dateTimeHelpers.localDateISOString(dateTimeHelpers.addDays(document.getElementById('start-picker').valueAsDate, 1)));
+            $('#end-picker').val(dateTimeHelpers.localDateISOString(dateTimeHelpers.addDays(document.getElementById('end-picker').valueAsDate, 1)));
+            fetchEntries();
         });
 
     });
@@ -212,7 +231,7 @@ function renderList() {
         dom += '<td><a href="' + url + '" target="_blank">' + log.issue + '</a></td>';
 
         dom += '<td>' + log.description.limit(35) + '</td>';
-        dom += '<td>' + log.started.toDDMM() + '</td>';
+        dom += '<td>' + log.started.toMMMDD() + '</td>';
 
         if (log.timeSpentInt > 0) {
             dom += '<td>' + log.timeSpentInt.toString().toHH_MM() + '</td>';
@@ -244,15 +263,24 @@ function renderList() {
             function success(response) {
                 var worklogs = response.worklogs;
                 worklogs.forEach(function (worklog) {
+                    // If the entry isn't for us we can skip it
                     if (!!myIdentity.jiraEmailAddress && !!worklog.author && worklog.author.emailAddress !== myIdentity.jiraEmailAddress) { return; }
 
+                    // Try to match on worklog start date time
+                    var dateTimeMatch = false;
+                    if(config.mergeEntriesBy == 'no-merge') { // we need to match on each specific entry by day/month/start time
+                        dateTimeMatch = (worklog.started.toMMMDDHHMM() === log.started.toMMMDDHHMM());
+                    } else { // we can match on just day/month
+                        dateTimeMatch = (worklog.started.toMMMDD() === log.started.toMMMDD());
+                    }
+
+                    // Try to match on worklog duration
                     var diff = Math.floor(worklog.timeSpentSeconds / 60) - Math.floor(log.timeSpentInt / 60);
-                    if (
-                        // if date and month matches
-                        worklog.started.toDDMM() === log.started.toDDMM() &&
-                        // if duration is within 4 minutes because JIRA is rounding worklog minutes :facepalm:
-                        diff < 4 && diff > -4
-                    ) {
+                    // if duration is within 4 minutes because JIRA is rounding worklog minutes :facepalm:
+                    var durationMatch = (diff < 4 && diff > -4);
+
+                    // Matching entries are not able to be logged again
+                    if (dateTimeMatch && durationMatch) {
                         $('#result-' + log.id).text('OK').addClass('success').removeClass('info');
                         $('#input-' + log.id).removeAttr('checked').attr('disabled', 'disabled');
                         $("#comment-" + log.id).val(worklog.comment || '').attr('disabled', 'disabled');
@@ -263,3 +291,4 @@ function renderList() {
     });
 
 }
+

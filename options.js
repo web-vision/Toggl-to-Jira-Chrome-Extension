@@ -20,8 +20,7 @@ function saveOptions() {
         roundMinutes: roundMinutes
     }, function () {
         // Update status to let user know options were saved.
-        var status = $('#status');
-        status.fadeTo(100, 1).text('Options saved.').delay(750).fadeTo(500, 0);
+        $('#status').removeClass('error').addClass('success').fadeTo(100, 1).text('Options saved.').delay(750).fadeTo(500, 0);
         // Also run the configuration test on save
         testConfiguration();
     });
@@ -86,10 +85,20 @@ function testConfiguration() {
 $(function () {
     restoreOptions();
     $('#save').on('click', saveOptions);
+    
     // Take you back to the popup on close
     $('#close').on('click', function () {
-        window.location = "popup.html"
+        // Validate that a JIRA URL and Toggl API Token have been provided
+        var url = $('#jira-url').val();
+        var togglApiToken = $('#toggl-api-token').val();
+        if(url.length > 0 && togglApiToken.length > 0) {
+            window.location = "popup.html";
+        } else {
+            $('#status').removeClass('success').addClass('error').fadeTo(100, 1).text('You must provide a Jira URL and Toggl API Token.').delay(1500).fadeTo(500, 0);
+        }
+        
     });
+
     // only no-merge can be used with useTogglDescription    
     $('#merge-entries-by').on('change', function () {
         if ($(this).val() != "no-merge") {
@@ -99,7 +108,4 @@ $(function () {
         }
     });
 
-
 });
-
-

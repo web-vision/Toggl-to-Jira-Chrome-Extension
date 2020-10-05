@@ -11,5 +11,20 @@ You need to be logged in to your Jira board, so the cookies are available in the
 
 Configure your Jira server URL and Toggl API Key in the extension Options once installed.
 
-Get the extension here
+# Installation
+
+1 - Get the extension here;
 https://chrome.google.com/webstore/detail/toggl-to-jira/anbbcnldaagfjlhbfddpjlndmjcgkdpf
+
+2 - Installing manually from source;
+
+- Use the Clone or Download option and choose ZIP
+- Copy the folder that's inside the ZIP file to somewhere on your PC
+- Visit chrome://extensions/ in your browser to manage Chrome Extensions
+- Turn on "Developer Mode" in the top right
+- This will allow you to click on "Load Unpacked"
+- And browse inside the folder you created earlier and click "Select Folder"
+- You should now see the Extension installed.
+- You can now disable Developer Mode (if you do not you will be prompted to next time you restart Chrome)
+- You should now also see an additional Toggl to Jira icon in the top right of your browser window
+- Clicking this icon will bring up the tool

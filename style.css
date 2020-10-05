@@ -109,7 +109,15 @@ button:hover {
     color: #595959;
 }
 
+.littleButton {
+    float: right;
+    margin-top: 2px;
+}
+
 fieldset {
     border: none;
     background-color: #eee;
+    line-height: 32px;
+    padding: 5px;
+    margin: 0px;
 }
