@@ -20,7 +20,7 @@ var identity = {
     ConnectToToggl: function (togglApiToken) {
         // https://github.com/toggl/toggl_api_docs/blob/master/chapters/users.md
         return $.get({
-            url: 'https://www.toggl.com/api/v8/me',
+            url: 'https://api.track.toggl.com/api/v8/me',
             headers: {
                 "Authorization": "Basic " + btoa(togglApiToken + ':api_token')
             }
