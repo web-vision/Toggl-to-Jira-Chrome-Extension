@@ -155,7 +155,7 @@ function fetchEntries() {
     // Toggl API call with token authorisation header
     // https://github.com/toggl/toggl_api_docs/blob/master/chapters/time_entries.md
     $.get({
-        url: 'https://api.track.toggl.com/api/v8/time_entries' + dateQuery,
+        url: 'https://api.track.toggl.com/api/v9/me/time_entries' + dateQuery,
         headers: {
             "Authorization": "Basic " + btoa(config.togglApiToken + ':api_token')
         }
@@ -164,7 +164,6 @@ function fetchEntries() {
         logs = [];
         unloggableTogglEntries = 0;
 
-        entries.reverse();
         entries.forEach(function (entry) {
             entry.description = entry.description || 'no-description';
             var issue = entry.description.split(' ')[0];
