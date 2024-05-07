@@ -20,14 +20,14 @@ var identity = {
     ConnectToToggl: function (togglApiToken) {
         // https://github.com/toggl/toggl_api_docs/blob/master/chapters/users.md
         return $.get({
-            url: 'https://api.track.toggl.com/api/v8/me',
+            url: 'https://api.track.toggl.com/api/v9/me',
             headers: {
                 "Authorization": "Basic " + btoa(togglApiToken + ':api_token')
             }
         }).then(function (togglResult) {
             return result = { // transform the result
-                togglUserName: togglResult.data.fullname,
-                togglEmailAddress: togglResult.data.email
+                togglUserName: togglResult.fullname,
+                togglEmailAddress: togglResult.email
             }
         });
     },
