@@ -1,4 +1,4 @@
-Upated to toggl api v9, re-download to fix issues
+⚠️Upated to toggl api v9, re-download to fix issues
 
 # Toggl-to-Jira-Chrome-Extension
 Sync toggl time entries with Jira work log
