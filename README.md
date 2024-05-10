@@ -1,7 +1,7 @@
-⚠️Upated to toggl api v9, re-download to fix issues
-
 # Toggl-to-Jira-Chrome-Extension
 Sync toggl time entries with Jira work log
+
+⚠️Upated to toggl api v9, re-download to fix issues
 
 
 Converts Toggl time entries to *Work Log* entries on corresponding Jira tasks where Time Tracking has been enabled.
