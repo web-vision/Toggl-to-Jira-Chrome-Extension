@@ -3,12 +3,15 @@
     "description": "Logs Toggl.com time entries via *log work* to corresponding Jira tasks",
     "version": "2.3.3",
     "permissions": [
+        "declarativeNetRequest",
+        "scripting",
         "storage",
         "tabs",
-        "webRequest",
-        "webRequestBlocking",
-        "<all_urls>",
-        "https://toggl.com/*/*", "https://atlassian.net/*/*"
+        "webRequest"
+    ],
+    "host_permissions": [
+        "https://toggl.com/*/*",
+        "https://atlassian.net/*/*"
     ],
     "icons": {
         "32": "toggl2jira_32.png",
@@ -17,9 +20,9 @@
         "128": "toggl2jira_128.png"
     },
     "background": {
-        "page": "background.html"
+        "service_worker": "background.js"
     },
-    "browser_action": {
+    "action": {
         "default_title": "Log Toggl.com entries to Jira",
         "default_popup": "popup.html"
     },
@@ -28,5 +31,5 @@
         "matches": ["http://*/*", "https://*/*"],
         "js": ["jquery.min.js"]
     }],
-    "manifest_version": 2
+    "manifest_version": 3
 }
