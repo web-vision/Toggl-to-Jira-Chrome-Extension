@@ -21,6 +21,8 @@ function saveOptions() {
     }, function () {
         // Update status to let user know options were saved.
         $('#status').removeClass('error').addClass('success').fadeTo(100, 1).text('Options saved.').delay(750).fadeTo(500, 0);
+        // Update declarativeNetRequest rule because Jira URL might have changed
+        modifyHeaders()
         // Also run the configuration test on save
         testConfiguration();
     });
