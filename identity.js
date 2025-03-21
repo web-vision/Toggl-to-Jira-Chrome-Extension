@@ -9,7 +9,7 @@ var identity = {
     ConnectToJira: function (jiraURL) {
         // https://developer.atlassian.com/cloud/jira/platform/rest/v2/#api-rest-api-2-myself-get
         return $.get(jiraURL + '/rest/api/2/myself').then(function (jiraResult) {
-            return result = { // transform the result
+            return { // transform the result
                 jiraUserName: jiraResult.displayName,
                 jiraEmailAddress: jiraResult.emailAddress
             }
@@ -25,7 +25,7 @@ var identity = {
                 "Authorization": "Basic " + btoa(togglApiToken + ':api_token')
             }
         }).then(function (togglResult) {
-            return result = { // transform the result
+            return { // transform the result
                 togglUserName: togglResult.fullname,
                 togglEmailAddress: togglResult.email
             }
@@ -38,7 +38,7 @@ var identity = {
             this.ConnectToJira(jiraURL),
             this.ConnectToToggl(togglApiToken)
         ).then(function (jiraResult, togglResult) {
-            return result = { // transform the result, merge the other results
+            return { // transform the result, merge the other results
                 ...jiraResult,
                 ...togglResult
             }

@@ -1,0 +1,14 @@
+// pure-css basics
+@import "pure/base.css";
+@import "pure/buttons-core.css";
+@import "pure/buttons.css";
+@import "pure/forms.css";
+@import "pure/tables.css";
+
+// own CSS styling
+@import "styling/variables";
+@import "styling/dark";
+@import "styling/base";
+@import "styling/header";
+@import "styling/forms";
+@import "styling/buttons";

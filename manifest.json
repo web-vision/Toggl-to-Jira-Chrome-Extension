@@ -1,35 +1,38 @@
 {
-    "name": "Toggl to Jira (FREE)",
+    "name": "Toggl2Jira (web-vision GmbH)",
     "description": "Logs Toggl.com time entries via *log work* to corresponding Jira tasks",
-    "version": "2.3.3",
+    "version": "3.0.0",
     "permissions": [
         "declarativeNetRequest",
         "scripting",
         "storage",
         "tabs",
-        "webRequest"
+        "webRequest",
+        "cookies"
     ],
     "host_permissions": [
-        "https://toggl.com/*/*",
-        "https://atlassian.net/*/*"
+        "https://*/rest/api/",
+        "https://api.track.toggl.com/"
     ],
     "icons": {
-        "32": "toggl2jira_32.png",
-        "16": "toggl2jira_16.png",
-        "48": "toggl2jira_48.png",
-        "128": "toggl2jira_128.png"
+        "32": "images/extension_32.png",
+        "16": "images/extension_16.png",
+        "48": "images/extension_48.png",
+        "128": "images/extension_128.png"
     },
     "background": {
+        "scripts": [
+            "background.js"
+        ],
         "service_worker": "background.js"
     },
     "action": {
         "default_title": "Log Toggl.com entries to Jira",
-        "default_popup": "popup.html"
+        "default_popup": "popup/popup.html"
     },
-    "options_page": "options.html",
-    "content_scripts": [{
-        "matches": ["http://*/*", "https://*/*"],
-        "js": ["jquery.min.js"]
-    }],
+    "options_page": "popup/options.html",
+    "options_ui": {
+        "page": "popup/options.html"
+    },
     "manifest_version": 3
 }

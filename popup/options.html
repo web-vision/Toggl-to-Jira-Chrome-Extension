@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Toggl2Jira Options</title>
+    <link href="../styles/styles.css" rel="stylesheet" type="text/css" />
+    <script src="options.js"></script>
+</head>
+
+<body>
+<form id="options">
+    <h2>Configuration</h2>
+    <h3 id="status"></h3>
+    <fieldset>
+        <legend>Jira</legend>
+        <div class="form-input">
+            <label class="form-label" for="jira-url">Jira Server URL</label>
+            <input class="form-control" name="url" id="jira-url" placeholder="https://jira.atlassian.net" required>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Toggl</legend>
+        <div class="form-input">
+            <label class="form-label" for="toggl-token">Toggl API Token</label>
+            <input class="form-control" name="togglApiToken" id="toggl-token" required>
+            <a class="btn" href="https://toggl.com/app/profile" target="_blank">Get your token here</a>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Options</legend>
+        <div class="form-input">
+            <label class="form-label" for="merge">Merge items by:</label>
+            <select class="form-select" id="merge">
+                <option value="no-merge">No merge</option>
+                <option value="issue-only">By issue only</option>
+                <option value="issue-and-date">By issue and date</option>
+            </select>
+        </div>
+        <div class="form-checkbox">
+            <input name="jumpToToday" type="checkbox" id="jump-to-today" />
+            <label for="jump-to-today">Always jump to today instead of remembering last logged date</label>
+        </div>
+    </fieldset>
+    <fieldset>
+        <button class="btn btn-default" type="submit">Save</button>
+        <a class="btn btn-default" href="popup.html">Close</a>
+    </fieldset>
+</form>
+</body>
+</html>

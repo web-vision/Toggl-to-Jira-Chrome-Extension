@@ -57,7 +57,7 @@ function testConfiguration() {
     var url = $('#jira-url').val();
     var togglApiToken = $('#toggl-api-token').val();
 
-    // From identity.js this will try to connect to both services
+    // From Identity.js this will try to connect to both services
 
     // Display the Jira result
     var jiraTestResult = $('#jiraTestResult');

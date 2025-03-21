@@ -1,6 +1,6 @@
 async function modifyHeaders() {
     // Retrieve the configured Jira URL
-    var {url: jiraUrl} = await chrome.storage.sync.get({
+    const {url: jiraUrl} = await chrome.storage.sync.get({
         url: 'https://jira.atlassian.net'
     });
     chrome.declarativeNetRequest.updateDynamicRules({

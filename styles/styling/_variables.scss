@@ -1,0 +1,14 @@
+:root {
+  --wv-color: #FF8700;
+  --btn-color: var(--wv-color);
+  --border-color: var(--wv-color);
+  --box-shadow: color-mix(in sRGB, var(--wv-color) 65%, #000000 5%);
+  --border-width: 1px;
+  --border-radius: 5px;
+  --background: #dee2e6;
+  --color: #000000;
+  --status-ok: #008000;
+  --status-fail: #bb2d3b;
+  --bg-odd: color-mix(in sRGB, var(--background) 75%, #000000 25%);
+  --input-background: color-mix(in sRGB, var(--background) 65%, #000000 5%);
+}

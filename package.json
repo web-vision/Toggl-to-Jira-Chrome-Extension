@@ -1,0 +1,15 @@
+{
+  "name": "typescript-chrome-extension",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --mode production --watch"
+  },
+  "author": "Markus Hofmann",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/chrome": "^0.0.309"
+  }
+}

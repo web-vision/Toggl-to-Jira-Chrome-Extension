@@ -1,0 +1,27 @@
+form {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-bottom: 15px;
+  align-items: center;
+}
+
+input {
+  &.issue {
+    width: 80px;
+  }
+  background-color: var(--input-background);
+  color: var(--color);
+
+  &#togglDescription {
+    width: 75%;
+  }
+}
+
+table {
+  width: 100%;
+  margin-bottom: 15px;
+}
+#currentTogglTime {
+  font-size: 1.8em;
+}

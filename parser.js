@@ -1,23 +1,23 @@
-var logs = [];
-var unloggableTogglEntries = 0;
-var config = {};
-var myIdentity = {};
+let logs = [];
+let unloggableTogglEntries = 0;
+let config = {};
+let myIdentity = {};
 
 $(document).ready(function () {
     // Retrieve the stored options
     chrome.storage.sync.get({
-        url: 'https://jira.atlassian.net',
+        url: 'https://pm.web-vision.de/',
         togglApiToken: '',
         mergeEntriesBy: 'no-merge',
         useTogglDescription: true,
-        comment: 'Updated via toggl-to-jira http://tiny.cc/t2j',
+        comment: '',
         jumpToToday: false,
         roundMinutes: 0,
     }, function (items) {
         config = items;
 
         // If this is a new user, direct them to the Options page straight away
-        if(config.togglApiToken == '') window.location = "options.html";
+        if(config.togglApiToken === '') window.location = "options.html";
 
         console.log('Fetching toggl entries for today.', 'Jira url: ', config.url, config);
 
@@ -36,15 +36,15 @@ $(document).ready(function () {
 
         // The browser datepicker will display a date in UTC if given a local datetime (stupid)
         // So we need to convert the local datetime into a local date string
-        var startString = localStorage.getItem('toggl-to-jira.last-date');
-        var startDate = (config.jumpToToday || !startString) ? dateTimeHelpers.localDateISOString() : dateTimeHelpers.localDateISOString(new Date(startString));
+        let startString = localStorage.getItem('toggl-to-jira.last-date');
+        let startDate = (config.jumpToToday || !startString) ? dateTimeHelpers.localDateISOString() : dateTimeHelpers.localDateISOString(new Date(startString));
         $('#start-picker').val(startDate);
 
         var endString = localStorage.getItem('toggl-to-jira.last-end-date');
         var endDate = (config.jumpToToday || !endString) ? dateTimeHelpers.localDateISOString(new Date(Date.now() + (3600 * 24 * 1000))) : dateTimeHelpers.localDateISOString(new Date(endString));
         $('#end-picker').val(endDate);
 
-        // Try to connect to both services first - from identity.js
+        // Try to connect to both services first - from Identity.js
         identity.Connect(config.url, config.togglApiToken).done(function (res) {
             myIdentity = res;
             $('#connectionDetails').addClass('success').removeClass('error')
@@ -290,4 +290,3 @@ function renderList() {
     });
 
 }
-
