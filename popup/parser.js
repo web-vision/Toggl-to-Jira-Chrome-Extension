@@ -29,6 +29,7 @@ window.addEventListener('load', () => {
             await main.toggl.writeRunnerInfo();
             main.addTogglEventListener();
             main.addTogglDescriptionListener();
+            main.addLogListener();
             return {jira: jiraEntries, toggl: togglEntries};
         })
         .then((entries) => {

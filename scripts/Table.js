@@ -80,4 +80,8 @@ class Table {
             line.append(durationCell);
         }
     }
+
+    getEntries() {
+        return this.#entries;
+    }
 }

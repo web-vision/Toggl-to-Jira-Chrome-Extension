@@ -96,4 +96,18 @@ class DateService {
         let hour = Math.trunc(minutes / 60);
         return hour + ':' + minuteInHour + ':' + secondsInMinute;
     }
+
+    static roundSecondsToFullMinute(seconds) {
+        const minuteDifference = seconds % 60;
+        let roundedDuration = seconds - minuteDifference;
+        if (minuteDifference < 30) {
+            roundedDuration = roundedDuration + 60;
+        }
+        return roundedDuration;
+    }
+
+    static formatToJiraAcceptedString(togglStart) {
+        const togglDate = togglStart.toISOString();
+        return togglDate.replace('Z', '-0000');
+    }
 }

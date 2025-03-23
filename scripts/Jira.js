@@ -1,8 +1,11 @@
 'use strict';
 
 class Jira {
-    #jiraServer = 'https://pm.web-vision.de';
-    static #workLog = '/rest/api/2/issue/{issue}/worklog';
+    static #jiraServer = 'https://pm.web-vision.de';
+    static #logWork = [
+        '/rest/api/2/issue/',
+        '/worklog'
+    ];
     static #userInformation = '/rest/api/2/myself';
     static #search = '/rest/api/2/search';
     static #worklogSearch = '/rest/api/2/worklog/updated';
@@ -12,15 +15,52 @@ class Jira {
 
 
     constructor(jiraServer) {
-        this.#jiraServer = jiraServer;
+        Jira.#jiraServer = jiraServer;
     }
 
-    async logWork() {
+    static async logWork(entries) {
+        for (const timestamp in entries) {
+            const entry = entries[timestamp];
+            // duration lower zero means not stopped, current running timer.
+            if (entry.toggl.duration < 0) {
+                continue;
+            }
+            let logged = true;
+            if (typeof entry.jira === 'undefined') {
+                logged = false;
+            }
 
+            if (logged) {
+                continue;
+            }
+
+            if (entry.toggl.issue.valid) {
+                let issue = await Jira.getIssueById(entry.toggl.issue.issue);
+                const url = Jira.#jiraServer + Jira.#logWork[0] + issue.id + Jira.#logWork[1];
+                const body = {
+                    comment: entry.toggl.issue.comment ?? '',
+                    started: DateService.formatToJiraAcceptedString(entry.toggl.start),
+                    timeSpentSeconds: DateService.roundSecondsToFullMinute(entry.toggl.duration)
+                };
+                await fetch(
+                    url,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        },
+                        body: JSON.stringify(body)
+                    })
+                    .then((response) => {
+                        return response.json();
+                    });
+            }
+        }
     }
 
     async getUserInformation() {
-        return await fetch(this.#jiraServer + Jira.#userInformation)
+        return await fetch(Jira.#jiraServer + Jira.#userInformation)
             .then((response) => {
                 if (response.status !== 200) {
                     throw new Error('Cannot connect to JIRA!');
@@ -51,7 +91,7 @@ class Jira {
             expand: "properties",
         });
         return await fetch(
-            this.#jiraServer + Jira.#worklogSearch + '?' + queryParams.toString(),
+            Jira.#jiraServer + Jira.#worklogSearch + '?' + queryParams.toString(),
             {
                 method:'GET'
             })
@@ -67,7 +107,7 @@ class Jira {
                     worklogIds.push(worklogEntry.worklogId);
                 });
                 return await fetch(
-                    this.#jiraServer + Jira.#worklogList,
+                    Jira.#jiraServer + Jira.#worklogList,
                     {
                         method: 'POST',
                         body: JSON.stringify({
@@ -91,7 +131,7 @@ class Jira {
                             if (started < dateService.getStartDate() || started > dateService.getEndDate()) {
                                 continue;
                             }
-                            const issue = await this.getIssueById(worklog.issueId);
+                            const issue = await Jira.getIssueById(worklog.issueId);
 
                             jiraWorklog.push(new JiraWorklog(worklog, issue));
                         }
@@ -100,15 +140,15 @@ class Jira {
             });
     }
 
-    async getIssueById(issueId) {
-        return await fetch(this.#jiraServer + Jira.#issue + issueId)
-            .then((response) => {
-                return response.json();
-            })
-            .then((data) => {
-                return data;
-            });
-    }
+    // async getIssueById(issueId) {
+    //     return await fetch(Jira.#jiraServer + Jira.#issue + issueId)
+    //         .then((response) => {
+    //             return response.json();
+    //         })
+    //         .then((data) => {
+    //             return data;
+    //         });
+    // }
 
     /**
      *
@@ -121,5 +161,15 @@ class Jira {
             return new Issue('', togglComment, false);
         }
         return new Issue(found[1], found[3], true);
+    }
+
+    static async getIssueById(issueId) {
+        return await fetch(Jira.#jiraServer + Jira.#issue + issueId)
+            .then((response) => {
+                return response.json();
+            })
+            .then((data) => {
+                return data;
+            });
     }
 }

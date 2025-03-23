@@ -1,9 +1,9 @@
 class Main {
-    settings = {};
     static dateService = new DateService();
+    static togglTimer;
+    settings = {};
     toggl;
     jira;
-    static togglTimer;
 
     constructor(settings, dateService) {
         this.settings = settings;
@@ -142,5 +142,19 @@ class Main {
                 );
             }
         });
+    }
+
+    addLogListener() {
+        const logButton = document.getElementById('logToJira');
+        logButton.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            await this.loadEntries(this.writeLogToJira, this);
+        });
+    }
+
+    async writeLogToJira(entries) {
+        const table = new Table(entries.jira, entries.toggl);
+        await Jira.logWork(table.getEntries());
     }
 }
